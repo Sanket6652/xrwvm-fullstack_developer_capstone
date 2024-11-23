@@ -7,22 +7,67 @@
 <script>
 
 const logout = async (e) => {
-//Include the code for logout here.
+    try {
+        // Prevent any default behavior if called from an event
+        if (e) e.preventDefault();
+        
+        const logout_url = window.location.origin + "/djangoapp/logout";
+        
+        // Add credentials and headers to ensure session cookies are included
+        const response = await fetch(logout_url, {
+            method: "GET",
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Get username before clearing session
+        const username = sessionStorage.getItem('username');
+        
+        // Clear session storage
+        sessionStorage.clear();
+        
+        // Show logout message
+        alert(`Logging out ${username}...`);
+        
+        // Redirect to home page
+        window.location.href = window.location.origin;
+        
+    } catch (error) {
+        console.error('Logout error:', error);
+        alert("The user could not be logged out. Please try again.");
+    }
 };
 
-let checkSession = ()=>{
-  let curr_user = sessionStorage.getItem("username");
+const checkSession = () => {
+    const curr_user = sessionStorage.getItem("username");
+    const loginlogoutElement = document.getElementById("loginlogout");
+    
+    if (!loginlogoutElement) {
+        console.error("Login/logout element not found");
+        return;
+    }
 
-  if (curr_user && curr_user !== "") {
-    document.getElementById("loginlogout").innerHTML = 
-    '<span class="homepage_links">' + curr_user +'</span>' +
-    '<a class="homepage_links" onclick="logout()" href="/">Logout</a>'
-  } else {
-    document.getElementById("loginlogout").innerHTML = 
-    '<a class="homepage_links" href="/login">Login</a>'+
-    '<a class="homepage_links"  href="/register">Register</a>'
-  }
- }
+    if (curr_user && curr_user.trim() !== "") {
+        loginlogoutElement.innerHTML = `
+            <span class="homepage_links">${curr_user}</span>
+            <a class="homepage_links" onclick="logout()" href="#">Logout</a>
+        `;
+    } else {
+        loginlogoutElement.innerHTML = `
+            <a class="homepage_links" href="/login">Login</a>
+            <a class="homepage_links" href="/register">Register</a>
+        `;
+    }
+};
 </script>
 </head>
 <body onload="checkSession()">
